@@ -28,6 +28,39 @@ describe( 'AutoUpdate',()=> {
         jest.clearAllTimers()
     })
 
+    describe('no update server configured',()=>{
+        const app = {
+            settings:{},
+            getName: ()=>'Incyclist',
+            getVersion: ()=>'1.0',
+        }
+
+        beforeEach( ()=>{
+            delete process.env.UPDATE_SERVER_URL
+        })
+
+        test('does not create an auto updater',()=>{
+            jest.spyOn(UpdaterFactory,'create')
+
+            const a = new AutoUpdate(app);
+
+            expect(a.autoUpdater).toBeUndefined()
+            expect(UpdaterFactory.create).not.toHaveBeenCalled()
+            UpdaterFactory.create.mockRestore()
+        })
+
+        test('checkForUpdates reports no update without network access',async ()=>{
+            const get = jest.spyOn(axios,'get')
+            const a = new AutoUpdate(app);
+
+            const res = await a.checkForUpdates()
+
+            expect(res).toEqual({available:false})
+            expect(get).not.toHaveBeenCalled()
+            get.mockRestore()
+        })
+    })
+
     describe('performWebUpdateCheck',()=>{
 
         let a;
@@ -36,7 +69,7 @@ describe( 'AutoUpdate',()=> {
         beforeEach( ()=>{
             jest.mock('axios')
             const app = {
-                settings:{},
+                settings:{updateServerUrl:'https://updates.example.com'},
                 getName: ()=>'Incyclist',
                 getVersion: ()=>version,
                 verifyDirectory: jest.fn(),
@@ -131,7 +164,7 @@ describe( 'AutoUpdate',()=> {
                 return updater
             })
             const app = {
-                settings:{},
+                settings:{updateServerUrl:'https://updates.example.com'},
                 getName: ()=>'Incyclist',
                 getVersion: ()=>version,
                 verifyDirectory: jest.fn(),
@@ -224,7 +257,7 @@ describe( 'AutoUpdate',()=> {
                 return updater
             })
             const app = {
-                settings:{},
+                settings:{updateServerUrl:'https://updates.example.com'},
                 getName: ()=>'Incyclist',
                 getVersion: ()=>version,
                 verifyDirectory: jest.fn(),

@@ -8,12 +8,12 @@ const Feature = require('../base')
 const { ipcHandleSync, ipcCallSync } = require('../utils/index.js')
 
 const AppSettings = require('../AppSettings');
+const { getSecretsServerUrl } = require('../../utils/endpoints');
 
 const TTL_DAYS = 30;
 const RETRY_INTERVAL_MS = 60 * 1000;
 const STATUS_TIMEOUT_MS = 3000;
 const PROVISION_TIMEOUT_MS = 5000;
-const DEFAULT_SECRETS_BASE_URL = 'https://dlws.incyclist.com';
 
 class SecretsFeature extends Feature {
     static _instance;
@@ -39,24 +39,30 @@ class SecretsFeature extends Feature {
     }
 
     _getBaseUrl() {
-        const fromSettings = AppSettings.getInstance().settings?.SECRET_SERVER_URL;
-        return fromSettings ?? process.env.SECRETS_BASE_URL ?? DEFAULT_SECRETS_BASE_URL;
+        return getSecretsServerUrl(AppSettings.getInstance().settings);
+    }
+
+    // secrets are only provisioned from a server in prod builds with a configured secrets server -
+    // otherwise they are read locally (secrets.json / environment), as in dev builds
+    _useServer() {
+        return this._isProd() && this._getBaseUrl() !== undefined;
     }
 
     getSecret(key) {
-        if (!this._isProd())
+        if (!this._useServer())
             return this._getDevSecret(key);
         return this.currentSecrets ? (this.currentSecrets[key] ?? '') : '';
     }
 
     getStatus() {
-        if (!this._isProd()) return 'ok';
+        if (!this._useServer()) return 'ok';
         return this.currentStatus;
     }
 
     async init({ timeout = 5000 } = {}) {
-        if (!this._isProd()) {
-            this.logger.logEvent({ message: 'skipping secret update', reason: 'non-prod build' });
+        if (!this._useServer()) {
+            const reason = this._isProd() ? 'no secrets server configured' : 'non-prod build';
+            this.logger.logEvent({ message: 'skipping secret update', reason });
             this._logDevSecretsSource();
             return 'ok';
         }

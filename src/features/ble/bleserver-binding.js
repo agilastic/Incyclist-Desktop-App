@@ -11,14 +11,10 @@ const path = require('node:path')
 const fs = require('node:fs')
 const axios = require('axios');
 const {checkDir} = require('../../utils')
-const DEFAULT_UPDATE_SERVER_URL_DEV  = 'http://localhost:4000';
-const DEFAULT_UPDATE_SERVER_URL_PROD = 'https://updates.incyclist.com';
-const DEFAULT_UPDATE_SERVER_URL = process.env.ENVIRONMENT=='dev' ? DEFAULT_UPDATE_SERVER_URL_DEV : DEFAULT_UPDATE_SERVER_URL_PROD;
+const {getUpdateServerUrl} = require('../../utils/endpoints')
 const { app } = require('electron');
 const { isArrayBuffer } = require('util/types');
 
-
-const server = DEFAULT_UPDATE_SERVER_URL;
 
 const uuid = (s) => {
     //console.log(s)
@@ -144,6 +140,13 @@ class WinrtBindings extends events.EventEmitter {
             return Promise.reject(err)
         }
 
+
+        // BLEServer.exe is downloaded from the update server - without one, it has to be placed in the bin directory manually
+        const server = getUpdateServerUrl()
+        if (!server) {
+            this.logEvent({message:'BLEServer download disabled', reason:'no update server configured'})
+            return Promise.reject(new Error('BLEServer download disabled: no update server configured'))
+        }
 
         return new Promise( (resolve,reject) => {
             this.updateBusy = true;

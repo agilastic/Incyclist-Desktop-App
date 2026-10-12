@@ -11,6 +11,7 @@ const {sleep} = require('../../utils/sleep')
 const EventEmitter = require("events");
 const UpdaterFactory = require("./binding/factory");
 const { AppInfo, checkDir } = require("../../utils");
+const { getUpdateServerUrl } = require("../../utils/endpoints");
 
 
 const TIMEOUT_WEB_CHECK = 1500
@@ -18,9 +19,6 @@ const TIMEOUT_WEB_DOWNLOAD = 5000
 const TIMEOUT_APP_CHECK = 3000
 
 
-const DEFAULT_UPDATE_SERVER_URL_DEV  = 'http://localhost:4000';
-const DEFAULT_UPDATE_SERVER_URL_PROD = 'https://updates.incyclist.com';
-const DEFAULT_UPDATE_SERVER_URL = process.env.UPDATE_SERVER_URL || (process.env.ENVIRONMENT=='dev' ? DEFAULT_UPDATE_SERVER_URL_DEV : DEFAULT_UPDATE_SERVER_URL_PROD);
 
 class AutoUpdate extends EventEmitter {
 
@@ -33,14 +31,18 @@ class AutoUpdate extends EventEmitter {
         this.settings = app.settings;
         this.loadingWindow = props.loadingWindow
         this.skipRequested = false;
-        const server = this.settings.updateServerUrl || DEFAULT_UPDATE_SERVER_URL;
-        this.autoUpdater = UpdaterFactory.create(server,this.logger)
+        // no update server configured: app and web-ui updates are disabled, the bundled web-ui is used
+        this.server = getUpdateServerUrl(this.settings)
+        this.autoUpdater = this.server ? UpdaterFactory.create(this.server,this.logger) : undefined
 
     }
 
 
     async checkForUpdates() {
-
+        if (!this.server) {
+            this.logger.logEvent({message:'updates disabled', reason:'no update server configured'})
+            return { available:false }
+        }
 
         const res = await Promise.allSettled( [ this.checkForAppUpdates(), this.checkForWebUpdatesNew()])
 
@@ -160,8 +162,7 @@ class AutoUpdate extends EventEmitter {
         if ( this.settings.pageUrl!==undefined )  
             return { available:false }
 
-        let updateServerUrl = this.settings.updateServerUrl || DEFAULT_UPDATE_SERVER_URL;
-        let url = `${updateServerUrl}/api/v1/apps/${this.app.getName()}/${this.app.getVersion()}?uuid=${this.settings.uuid}`
+        let url = `${this.server}/api/v1/apps/${this.app.getName()}/${this.app.getVersion()}?uuid=${this.settings.uuid}`
         this.logger.logEvent({message:'react update request',url});
 
 
@@ -370,8 +371,7 @@ class AutoUpdate extends EventEmitter {
       
 
         let targetVersion = data.reactVersion;
-        let updateServerUrl = this.settings.updateServerUrl || DEFAULT_UPDATE_SERVER_URL;
-        let url = `${updateServerUrl}/download/react/${this.app.getName()}-${targetVersion}.zip`
+        let url = `${this.server}/download/react/${this.app.getName()}-${targetVersion}.zip`
         this.logger.logEvent({message:'react download request',url})
         
         try {

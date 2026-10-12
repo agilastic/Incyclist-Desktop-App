@@ -6,8 +6,8 @@ const http = require('node:http');
 const crypto = require('node:crypto');
 const axios = require('axios');
 const { EventLogger } = require('gd-eventlog');
+const { getOAuthServerUrl } = require('../../utils/endpoints');
 
-const OAUTH_SERVER = 'https://auth.incyclist.com/';
 const AUTH_TIMEOUT_MS = 5*60*1000; // give the user enough time to log in + solve a captcha
 
 const CALLBACK_RESPONSE_HTML = '<html><body>You can close this window and return to Incyclist.</body></html>';
@@ -70,7 +70,12 @@ class OauthFeature extends Feature{
     // when the user abandons the system-browser tab without completing or
     // cancelling - the request just times out after AUTH_TIMEOUT_MS.
     authorize(provider) {
-        const oauthUrl = trimTrailingSlashes(app.incyclistApp.settings.oauthUrl || OAUTH_SERVER)
+        const server = getOAuthServerUrl(app.incyclistApp.settings)
+        if (!server) {
+            this.logger.logEvent({message:'oauth disabled', reason:'no OAuth server configured', provider})
+            return Promise.resolve({success:false, reason:'no OAuth server configured'})
+        }
+        const oauthUrl = trimTrailingSlashes(server)
 
         const codeVerifier = crypto.randomBytes(32).toString('base64url')
         const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url')

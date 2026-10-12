@@ -15,6 +15,7 @@ const { restLogFilter, fileLogFilter } = require('./utils/logging');
 const { version,name} = require('../package.json');
 const WindowManager = require('./web/manager');
 const { getRealCPUArchitecture } = require('./utils/architecture');
+const { getLogServerUrl, getCrashReportUrl, getOAuthServerUrl } = require('./utils/endpoints');
 const APP_NAME = name;
 const APP_VERSION = version;
 
@@ -243,12 +244,14 @@ class IncyclistApp
 
     setupCrashReporting() {
         try {
-            const submitURL = this.getLoggingUrl().replace('/log','/crash')
+            // crash dumps are always written locally; they are only uploaded when a crash report server is configured
+            const submitURL = getCrashReportUrl(this.settings)
             crashReporter.start({ 
-                submitURL,
-                uploadToServer: true,   
+                submitURL: submitURL ?? '',
+                uploadToServer: submitURL!==undefined,   
                 compress:true                       
             });
+            this.logger.logEvent({message:'crash reporting initialized', upload:submitURL!==undefined})
             crashReporter.addExtraParameter('uuid',this.settings.uuid)
             crashReporter.addExtraParameter('appVersion',version)
 
@@ -307,25 +310,18 @@ class IncyclistApp
     }
 
     getLoggingUrl() {
-        let logSettings  = {}
-
-        if ( this.settings.logRest!==undefined) 
-            logSettings = JSON.parse(JSON.stringify((this.settings.logRest)));
-
-        if (logSettings.url)
-            return logSettings.url
-
-        return AppSettings.DEFAULT_SETTINGS.logRest.url;
+        return getLogServerUrl(this.settings)
     }
 
     initRestLogging() {
         this.logger.logEvent({message:'setting up REST logging',config:this.settings.logRest})
-        if ( this.settings.logRest===undefined || this.settings.logRest.enabled===undefined || this.settings.logRest.enabled!==false ) {
+        const url = this.getLoggingUrl()
+        if ( url && this.settings.logRest?.enabled!==false ) {
             try {
                 let settings  = {}
                 if ( this.settings.logRest!==undefined) 
                     settings = JSON.parse(JSON.stringify((this.settings.logRest)));
-                settings.url = this.getLoggingUrl()
+                settings.url = url
                 this.restAdapter = new RestLogAdapter(settings);
                 this.logger.logEvent({message:'REST logging initialized',settings})
                 EventLogger.registerAdapter(this.restAdapter, restLogFilter)
@@ -583,6 +579,10 @@ class IncyclistApp
     }
 
     showAuthWindow(provider) {
+        if (!getOAuthServerUrl(this.settings)) {
+            this.logger.logEvent({message:'oauth disabled', reason:'no OAuth server configured', provider})
+            return
+        }
         this.windowManager.createAuthWindow(provider)
        
     }

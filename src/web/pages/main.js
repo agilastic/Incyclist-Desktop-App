@@ -2,6 +2,7 @@ const { BrowserWindow,globalShortcut} =  require('electron');
 const path = require('path')
 const {EventLogger }= require('gd-eventlog');
 const { getSourceDir } = require('../../utils');
+const { getUpdateServerUrl } = require('../../utils/endpoints');
 const NativeUISupport = require('../../features/ui/feature');
 
 class MainWindow {
@@ -17,7 +18,8 @@ class MainWindow {
 
         //this.pageUrl = 'http://localhost:4000'; 
         this.pageUrl = 'file://'+path.join(getSourceDir() ,'../build/index.html'+"#ride"); 
-        if ( this.app.settings.pageDir!==undefined) 
+        // a downloaded web-ui (pageDir) is only used together with an update server - otherwise the bundled web-ui is used
+        if ( this.app.settings.pageDir && getUpdateServerUrl(this.app.settings)) 
             this.pageUrl = 'file://'+path.join( this.app.settings.pageDir ,'index.html'+"#ride"); 
         if ( this.app.settings.pageUrl!==undefined) {
             if (this.pageUrl.endsWith('/start') || this.pageUrl.startsWith('file:'))

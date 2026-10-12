@@ -6,13 +6,7 @@ const os = require('os')
 const path = require('path')
 const {EventLogger} = require( 'gd-eventlog');
 const {getAppDirectory,checkDir} = require('../../utils');
-
-const DEFAULT_UPDATE_SERVER_URL_DEV  = 'http://localhost:4000';
-const DEFAULT_UPDATE_SERVER_URL_PROD = 'https://updates.incyclist.com';
-const DEFAULT_UPDATE_SERVER_URL = process.env.ENVIRONMENT=='dev' ? DEFAULT_UPDATE_SERVER_URL_DEV : DEFAULT_UPDATE_SERVER_URL_PROD;
-
-const server = DEFAULT_UPDATE_SERVER_URL;
-const info = `${server}/ffmpeg/info`
+const {getUpdateServerUrl} = require('../../utils/endpoints');
 
 class FFMpegSupport {
     static _instance = null;
@@ -43,10 +37,19 @@ class FFMpegSupport {
         this.settings  = AppSettings.getValue(AppSettings.getInstance().settings,'ffmpeg',{})       
 
         this.setPath();        
+
+        // ffmpeg is downloaded from the update server - without one, an already installed
+        // ffmpeg (settings.ffmpeg.path) or the one found on the system PATH is used
+        this.server = getUpdateServerUrl()
+        if (!this.server) {
+            this.logger.logEvent({message:'ffmpeg download disabled', reason:'no update server configured'})
+            return
+        }
+
         const currentVersion = this.settings.version;
         const activity = currentVersion ? 'update' : 'version'
         this.logger.logEvent({message:`checking for ffmpeg ${activity}`})
-        axios.get(info)
+        axios.get(`${this.server}/ffmpeg/info`)
             .then((response)=>{
                 const newVersion = response.data.release;
                 
@@ -81,7 +84,7 @@ class FFMpegSupport {
         return new Promise( (resolve,reject) => {
             const platform = os.platform();
             const arch = os.arch();
-            const downloadUrl = `${server}/ffmpeg/download/${platform}/${arch}`
+            const downloadUrl = `${this.server}/ffmpeg/download/${platform}/${arch}`
             
             const defaultName = platform==='win32' ? 'ffmpeg.exe' : 'ffmpeg';
     

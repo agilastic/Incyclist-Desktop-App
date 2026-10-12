@@ -3,12 +3,12 @@ const path = require('path')
 const {EventLogger }= require('gd-eventlog');
 const EventEmitter = require('events');
 const { getSourceDir } = require('../../utils');
+const { getOAuthServerUrl } = require('../../utils/endpoints');
 
 const MAIN_WIN_WIDTH = 400;
 const MAIN_WIN_HEIGHT = 300;
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36'
-const OAUTH_SERVER =  'https://auth.incyclist.com/'
 
 function trimTrailingChars(s, charToTrim) {
     let c = charToTrim;
@@ -37,7 +37,8 @@ class OAuthWindow extends EventEmitter{
         this.provider = provider;
         this.legacyApi = legacyApi;
 
-        this.pageUrl = this.app.settings.oauthUrl || OAUTH_SERVER;        
+        // only created when an OAuth server is configured (see IncyclistApp.showAuthWindow)
+        this.pageUrl = getOAuthServerUrl(this.app.settings);        
         if (legacyApi)
             this.pageUrl = trimTrailingChars(this.pageUrl,'/') + `/${provider}`
         else 

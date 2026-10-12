@@ -65,8 +65,15 @@ function updateWebBundle(targetDir) {
     return new Promise (done => {
         if (buildPath) {
             const reactBuildDir = path.join(baseDir,buildPath)
+            if (!fs.existsSync(path.join(reactBuildDir,'index.html'))) {
+                console.log('no web-ui build found in',reactBuildDir)
+                done(1)
+                return
+            }
            
             console.log('copy files from ',reactBuildDir)
+            // start from a clean directory, so no files of a previous bundle remain
+            fs.rmSync(targetDir, {recursive: true, force: true})
             fs.cpSync(reactBuildDir,targetDir, {recursive: true})
             done(0)
         
@@ -91,7 +98,10 @@ function updateWebBundle(targetDir) {
 }
 
 const run = async () => {
-    await updateWebBundle('./build')
+    // the web-ui is bundled with the app - without it, the app would start with an empty window
+    const result = await updateWebBundle('./build')
+    if (result!==0)
+        throw new Error('web-ui bundle could not be added to ./build')
 }
 
 module.exports = run

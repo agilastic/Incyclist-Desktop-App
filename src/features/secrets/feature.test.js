@@ -15,7 +15,7 @@ jest.mock('electron', () => ({
 }))
 
 jest.mock('../AppSettings', () => ({
-    getInstance: jest.fn(() => ({ settings: { uuid: 'test-uuid' } })),
+    getInstance: jest.fn(() => ({ settings: { uuid: 'test-uuid', SECRET_SERVER_URL: 'https://secrets.example.com' } })),
 }))
 
 const { safeStorage, net } = require('electron')
@@ -27,7 +27,7 @@ describe('SecretsFeature', () => {
 
     beforeEach(() => {
         jest.clearAllMocks()
-        AppSettings.getInstance.mockReturnValue({ settings: { uuid: 'test-uuid' } })
+        AppSettings.getInstance.mockReturnValue({ settings: { uuid: 'test-uuid', SECRET_SERVER_URL: 'https://secrets.example.com' } })
         safeStorage.isEncryptionAvailable.mockReturnValue(true)
         safeStorage.getSelectedStorageBackend.mockReturnValue('gnome_libsecret')
         net.isOnline.mockReturnValue(true)
@@ -41,6 +41,30 @@ describe('SecretsFeature', () => {
 
     afterEach(() => {
         delete process.env.ENVIRONMENT
+    })
+
+    describe('no secrets server configured', () => {
+        beforeEach(() => {
+            AppSettings.getInstance.mockReturnValue({ settings: { uuid: 'test-uuid' } })
+            delete process.env.SECRETS_BASE_URL
+        })
+
+        test('init does not contact any server and uses local secrets', async () => {
+            feature.performInit = jest.fn()
+
+            const status = await feature.init({ timeout: 10 })
+
+            expect(status).toBe('ok')
+            expect(feature.performInit).not.toHaveBeenCalled()
+            expect(feature._fetchWithTimeout).not.toHaveBeenCalled()
+            expect(feature.getStatus()).toBe('ok')
+        })
+
+        test('getSecret reads local secrets', () => {
+            feature._getDevSecret = jest.fn(() => 'local-key')
+
+            expect(feature.getSecret('INCYCLIST_API_KEY')).toBe('local-key')
+        })
     })
 
     describe('performInit - safeStorage unavailable (fallback path)', () => {

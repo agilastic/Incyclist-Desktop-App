@@ -8,10 +8,9 @@ const fs = require('fs')
 const { getRealCPUArchitecture } = require('../utils/architecture.js')
 
 const SAVE_INTERVAL = 3000;
-const DEFAULT_LOG_SERVER_URL = process.env.ENVIRONMENT=='dev' ? 'https://localhost:5000/api/v1/log' :'https://analytics.incyclist.com/api/v1/log';
+// no default logging server: REST logging is only enabled when a URL is configured (see utils/endpoints.js)
 const DEFAULT_SETTINGS = {
     logRest: {
-        url: DEFAULT_LOG_SERVER_URL,
         cacheDir: os.tmpdir()
     }
 }
