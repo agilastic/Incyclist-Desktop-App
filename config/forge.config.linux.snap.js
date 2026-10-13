@@ -9,7 +9,7 @@ module.exports = {
   packagerConfig: {
     asar: true,
     appBundleId: 'com.incyclist.desktop',
-    name: 'Incyclist',
+    name: 'ForkyCyclist',
     icon: 'res/icons/incyclist',
     ignore: [ '^/.github','^/.gitignore', '^/app-tests','^coverage','^/certs', '^/entitlements','^/profiles','^/bin','^/installer','^/release','scripts','^/config','^/test','^/test-results','^/testdata','README.MD','electron-builder.yml','^/.env']
   },

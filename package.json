@@ -1,6 +1,7 @@
 {
   "name": "incyclist",
   "productName": "Incyclist",
+  "displayName": "ForkyCyclist",
   "desktopName": "Incyclist.desktop",
   "version": "26.8.2",
   "copyright": "Guido Doumen, Jeroen Doumen",

@@ -71,7 +71,7 @@ class OAuthWindow extends EventEmitter{
         this.win = new BrowserWindow({ 
             show:false,
             fullscreen: false, 
-            title:this.app.getName(),
+            title:this.app.getDisplayName(),
             icon: this.iconUrl, 
             minWidth:1024,
             minHeight:768,

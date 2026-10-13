@@ -15,7 +15,7 @@ module.exports = {
     asar: true,
     rebuild:false,
     appBundleId: 'com.incyclist.desktop',
-    name: 'Incyclist',
+    name: 'ForkyCyclist',
     icon: 'res/icons/incyclist',
     ignore: [ 
       '^/node_modules/.*/noble/build',

@@ -64,6 +64,10 @@ body {
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
+.brand-accent {
+  color: var(--accent);
+}
+
 .status {
   font-size: 14px;
   color: var(--text-muted);

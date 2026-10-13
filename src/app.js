@@ -12,12 +12,13 @@ const SecretsFeature = require('./features/secrets/feature');
 const AppSettings  = require('./features/AppSettings');
 const { restLogFilter, fileLogFilter } = require('./utils/logging');
 
-const { version,name} = require('../package.json');
+const { version,name,displayName} = require('../package.json');
 const WindowManager = require('./web/manager');
 const { getRealCPUArchitecture } = require('./utils/architecture');
 const { getLogServerUrl, getCrashReportUrl, getOAuthServerUrl } = require('./utils/endpoints');
 const APP_NAME = name;
 const APP_VERSION = version;
+const APP_DISPLAY_NAME = displayName ?? name;
 
 let unhandled
 
@@ -606,6 +607,11 @@ class IncyclistApp
 
     getName() {
         return APP_NAME;
+    }
+
+    // name shown to the user (window titles, loading screen) - the data folder keeps using getName()
+    getDisplayName() {
+        return APP_DISPLAY_NAME;
     }
 
     getVersion() {

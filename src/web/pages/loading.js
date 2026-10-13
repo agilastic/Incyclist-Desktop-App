@@ -32,7 +32,7 @@ class LoadingWindow {
             width:LOADING_WIN_WIDTH , 
             height:LOADING_WIN_HEIGHT, backgroundColor:"#11161c"
         })
-        this.win.webContents.executeJavaScript( `document.getElementById("versionText").innerHTML = "${this.app.appName} ${this.app.appVersion}" `)
+        this.win.webContents.executeJavaScript( `document.getElementById("versionText").innerHTML = "${this.app.getDisplayName()} ${this.app.appVersion}" `)
         this.win.on('closed',this.onClosed.bind(this));
         if (process.env.LOADER_DEBUG) {
             this.win.webContents.openDevTools();

@@ -53,7 +53,7 @@ class MainWindow {
 
         this.win = new BrowserWindow({ 
             show:false,
-            title:this.app.getName(),
+            title:this.app.getDisplayName(),
             icon: this.iconUrl, 
             minWidth:800,
             minHeight:600,
