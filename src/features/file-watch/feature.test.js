@@ -20,6 +20,7 @@ describe('FileWatchFeature', () => {
         feature.stat = jest.fn(file => sizes[file] === undefined ? undefined : { size: sizes[file] })
         feature.sleep = jest.fn(() => Promise.resolve())
         feature.notify = jest.fn()
+        feature.readDir = jest.fn(() => Promise.resolve([]))
         jest.spyOn(fs, 'existsSync').mockReturnValue(true)
     })
 
@@ -28,7 +29,7 @@ describe('FileWatchFeature', () => {
     })
 
     test('reports a new file with a watched extension once it is complete', async () => {
-        const id = feature.watch('/dl', ['zwo'])
+        const id = await feature.watch('/dl', ['zwo'])
         sizes['/dl/FTP Builder.zwo'] = 1200
 
         onChange('rename', 'FTP Builder.zwo')
@@ -40,7 +41,7 @@ describe('FileWatchFeature', () => {
     })
 
     test('ignores other extensions and temporary download files', async () => {
-        feature.watch('/dl', ['zwo'])
+        await feature.watch('/dl', ['zwo'])
         sizes['/dl/a.pdf'] = 10
         sizes['/dl/b.zwo.crdownload'] = 10
 
@@ -52,7 +53,7 @@ describe('FileWatchFeature', () => {
     })
 
     test('waits until the file size is stable', async () => {
-        feature.watch('/dl', ['zwo'])
+        await feature.watch('/dl', ['zwo'])
         const growing = [100, 500, 900, 900]
         feature.stat = jest.fn(() => ({ size: growing.shift() ?? 900 }))
 
@@ -64,7 +65,7 @@ describe('FileWatchFeature', () => {
     })
 
     test('reports each file only once', async () => {
-        feature.watch('/dl', ['zwo'])
+        await feature.watch('/dl', ['zwo'])
         sizes['/dl/w.zwo'] = 300
 
         onChange('rename', 'w.zwo')
@@ -77,7 +78,7 @@ describe('FileWatchFeature', () => {
     })
 
     test('does not report a file that disappears again', async () => {
-        feature.watch('/dl', ['zwo'])
+        await feature.watch('/dl', ['zwo'])
 
         onChange('rename', 'gone.zwo')
         await settle()
@@ -85,14 +86,27 @@ describe('FileWatchFeature', () => {
         expect(feature.notify).not.toHaveBeenCalled()
     })
 
-    test('a missing folder can not be watched', () => {
+    test('a missing folder can not be watched', async () => {
         fs.existsSync.mockReturnValue(false)
 
-        expect(feature.watch('/missing', ['zwo'])).toBeUndefined()
+        expect(await feature.watch('/missing', ['zwo'])).toBeUndefined()
     })
 
-    test('unwatch closes the watcher', () => {
-        const id = feature.watch('/dl', ['zwo'])
+    test('a folder without access can not be watched (e.g. macOS privacy protection)', async () => {
+        feature.readDir.mockRejectedValue(Object.assign(new Error('operation not permitted'), { code: 'EPERM' }))
+
+        expect(await feature.watch('/dl', ['zwo'])).toBeUndefined()
+        expect(feature.createWatcher).not.toHaveBeenCalled()
+    })
+
+    test('reads the folder before watching, so macOS can ask for access', async () => {
+        await feature.watch('/dl', ['zwo'])
+
+        expect(feature.readDir).toHaveBeenCalledWith('/dl')
+    })
+
+    test('unwatch closes the watcher', async () => {
+        const id = await feature.watch('/dl', ['zwo'])
 
         expect(feature.unwatch(id)).toBe(true)
         expect(feature.unwatch(id)).toBe(false)

@@ -38,12 +38,16 @@ class FileWatchFeature extends Feature {
      *
      * @param {string} dir folder to watch
      * @param {Array<string>} extensions file extensions to report (without dot, case insensitive)
-     * @returns {string|undefined} id of the watch, undefined if the folder can't be watched
+     * @returns {Promise<string|undefined>} id of the watch, undefined if the folder can't be watched
      */
-    watch(dir, extensions = []) {
+    async watch(dir, extensions = []) {
         try {
             if (!dir || !fs.existsSync(dir))
                 return undefined
+
+            // reading the folder first lets macOS ask the user for access to protected folders
+            // (e.g. Downloads) - a watch on a folder without access fails with EPERM
+            await this.readDir(dir)
 
             const id = `watch-${++this.cnt}`
             const exts = extensions.map(e => e.toLowerCase().replace(/^\./, ''))
@@ -117,6 +121,10 @@ class FileWatchFeature extends Feature {
 
     createWatcher(dir, onChange) {
         return fs.watch(dir, { persistent: false }, onChange)
+    }
+
+    readDir(dir) {
+        return fs.promises.readdir(dir)
     }
 
     stat(file) {
