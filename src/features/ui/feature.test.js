@@ -145,3 +145,69 @@ describe('NativeUISupport.toggleFullScreen', () => {
     })
 
 })
+
+describe('NativeUISupport safe area (camera notch)', () => {
+
+    const os = require('os')
+    const { getNotchHeight } = require('./feature')
+    let instance, win
+
+    const display = (props) => ({ bounds:{x:0,y:0}, workArea:{x:0,y:0}, size:{width:1512,height:982}, internal:true, ...props })
+
+    const createWindow = () => {
+        let simple = false
+        return {
+            isFullScreen: jest.fn().mockReturnValue(false),
+            setFullScreen: jest.fn(),
+            isSimpleFullScreen: jest.fn(() => simple),
+            setSimpleFullScreen: jest.fn(v => { simple = v }),
+        }
+    }
+
+    beforeEach(() => {
+        instance = NativeUISupport.getInstance()
+        instance.safeAreaTop = 0
+        win = createWindow()
+        jest.spyOn(os, 'platform').mockReturnValue('darwin')
+        jest.spyOn(instance, 'notifySafeArea').mockImplementation(() => {})
+        jest.spyOn(instance, 'getNotchHeightForWindow').mockReturnValue(37)
+    })
+
+    afterEach(() => {
+        jest.restoreAllMocks()
+    })
+
+    test('a notch display has a taller menu bar', () => {
+        expect(getNotchHeight(display({ workArea:{x:0,y:37} }))).toBe(37)
+    })
+
+    test('a display without notch has a normal menu bar', () => {
+        expect(getNotchHeight(display({ workArea:{x:0,y:25}, size:{width:1440,height:900} }))).toBe(0)
+    })
+
+    test('hidden menu bar: a built-in display with notch is recognised by its shape', () => {
+        expect(getNotchHeight(display({}))).toBe(38)
+    })
+
+    test('hidden menu bar: external displays have no notch', () => {
+        expect(getNotchHeight(display({ internal:false, size:{width:3024,height:1964} }))).toBe(0)
+    })
+
+    test('no display, no notch', () => {
+        expect(getNotchHeight(undefined)).toBe(0)
+    })
+
+    test('keeps the notch free in simple fullscreen and tells the renderer', () => {
+        instance.toggleWindowFullScreen(win)
+
+        expect(instance.getSafeArea()).toEqual({ top:37 })
+        expect(instance.notifySafeArea).toHaveBeenCalled()
+    })
+
+    test('no free area after leaving the fullscreen', () => {
+        instance.toggleWindowFullScreen(win)
+        instance.toggleWindowFullScreen(win)
+
+        expect(instance.getSafeArea()).toEqual({ top:0 })
+    })
+})
