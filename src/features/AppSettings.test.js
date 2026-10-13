@@ -289,3 +289,22 @@ describe('AppSettings',()=> {
     })
 
 })
+describe('AppSettings.getDownloadsDir', () => {
+    const { app } = require('electron')
+
+    afterEach(() => {
+        jest.restoreAllMocks()
+    })
+
+    test('returns the download folder of the user', () => {
+        app.getPath = jest.fn((name) => name === 'downloads' ? '/Users/test/Downloads' : undefined)
+
+        expect(AppSettings.getDownloadsDir()).toBe('/Users/test/Downloads')
+    })
+
+    test('returns undefined if the folder is not available', () => {
+        app.getPath = jest.fn(() => { throw new Error('not available') })
+
+        expect(AppSettings.getDownloadsDir()).toBeUndefined()
+    })
+})

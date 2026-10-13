@@ -16,6 +16,16 @@ const DEFAULT_SETTINGS = {
 }
 
 
+// user's download folder (e.g. ~/Downloads) - used to hand over exported files, undefined if not available
+const getDownloadsDir = () => {
+    try {
+        return app.getPath('downloads')
+    }
+    catch {
+        return undefined
+    }
+}
+
 const getAppInfo = () => {
     let res;
     try {
@@ -25,7 +35,7 @@ const getAppInfo = () => {
         const session = app.incyclistApp.session
         const appDir = getAppDirectory()
         const tempDir = os.tmpdir()
-        res = {name,version,session, sourceDir,appDir,tempDir}
+        res = {name,version,session, sourceDir,appDir,tempDir, downloadsDir:getDownloadsDir()}
     }
     catch {
         console.log('~~~~ ERROR ',err)
@@ -636,6 +646,8 @@ class AppSettings {
 
         spec.registerFeatures( [
             'appSettings', 'appSettings.os', 'appSettings.os.v2', 'appSettings.appInfo', 'appSettings.overwrite',
+            // getAppInfo() also provides downloadsDir
+            'appSettings.appInfo.downloadsDir',
         ] )
     }
    
@@ -643,6 +655,7 @@ class AppSettings {
 }
 
 AppSettings.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
+AppSettings.getDownloadsDir = getDownloadsDir;
 
 
 module.exports = AppSettings
