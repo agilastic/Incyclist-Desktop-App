@@ -95,8 +95,9 @@ class MainWindow {
         this.win.webContents.session.webRequest.onBeforeSendHeaders(
             { urls: ['https://*.tile.openstreetmap.org/*'] },
             (details, callback) => {
-                details.requestHeaders['Referer'] = 'https://incyclist.com';
-                details.requestHeaders['User-Agent'] = `Incyclist/${this.app.appVersion} (https://github.com/incyclist)`;
+                // ForkyCyclist identifies itself to OpenStreetMap (tile usage policy: identifiable client)
+                details.requestHeaders['Referer'] = 'https://github.com/agilastic/Incyclist-Desktop-App';
+                details.requestHeaders['User-Agent'] = `ForkyCyclist/${this.app.appVersion} (https://github.com/agilastic/Incyclist-Desktop-App)`;
                 callback({ requestHeaders: details.requestHeaders });
             }
         );
