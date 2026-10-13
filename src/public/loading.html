@@ -8,20 +8,16 @@
 	 <link rel="stylesheet" type="text/css" href="./loading.css">
   </head>
   <body>
+	<div class="hero"></div>
+	<div class="shade"></div>
 
-	<div class="img">
-	</div>
+	<main class="panel">
+		<div class="brand">Incyclist</div>
+		<div class="status"><span id="loadingText">loading ...</span></div>
+		<div class="progress"><div class="bar"></div></div>
+		<button id='skipBtn' class="btn" hidden=true onclick="window.api.skipInstallUpdate()">Install Later</button>
+	</main>
 
-	<div class="wrap">
-		<div class="loading">
-			<div class="bounceball"></div>
-			<div id="loadingText" class="text">loading ...</div>
-		</div>
-		<div class="row">
-			<button id='skipBtn' class="btn" hidden=true onclick="window.api.skipInstallUpdate()">Install Later</button>
-		</div>		
-	</div>
 	<div id="versionText" class="version">version 1.2.3</div>
-
-</body>
+  </body>
 </html>

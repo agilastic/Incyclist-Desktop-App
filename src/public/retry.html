@@ -16,11 +16,16 @@
 				ipc.send('retry-page-event', 'close')
 			}	
 		</script>
-		<div class="error"><h2>Failed Loading</h2></div>
-		<div class="buttons">
-			<button class="btn" onclick="sendReload()">Retry</button>
-			<button class="btn" onclick="sendClose()">Close</button>	
-		</div>
-	</div>
+		<div class="hero"></div>
+		<div class="shade"></div>
+
+		<main class="panel">
+			<div class="brand">Incyclist</div>
+			<div class="error">Failed Loading</div>
+			<div class="buttons">
+				<button class="btn" onclick="sendReload()">Retry</button>
+				<button class="btn btn-secondary" onclick="sendClose()">Close</button>
+			</div>
+		</main>
   </body>
 </html>

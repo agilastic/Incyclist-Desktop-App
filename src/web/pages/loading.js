@@ -30,7 +30,7 @@ class LoadingWindow {
 
             },
             width:LOADING_WIN_WIDTH , 
-            height:LOADING_WIN_HEIGHT, backgroundColor:"#cccccc"
+            height:LOADING_WIN_HEIGHT, backgroundColor:"#11161c"
         })
         this.win.webContents.executeJavaScript( `document.getElementById("versionText").innerHTML = "${this.app.appName} ${this.app.appVersion}" `)
         this.win.on('closed',this.onClosed.bind(this));

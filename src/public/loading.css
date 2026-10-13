@@ -1,174 +1,155 @@
-body {
-  position: relative;
+:root {
+  --accent: #f0a030;
+  --accent-hover: #ffb84d;
+  --text: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.72);
+  --bg: #11161c;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html, body {
   width: 100%;
   height: 100%;
-  padding:0;
-  margin:0;
-  color: #2c3e50;
-  background-color: #cccccc;
-  font-family: "Lato","Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-weight: 400;
-  z-index: 1;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
+body {
+  position: relative;
+  color: var(--text);
+  background-color: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-app-region: drag;       /* frameless window: allow moving it */
+}
 
-.img {
+/* full-window photo with a slow, subtle zoom */
+.hero {
   position: absolute;
-  top: 5vh;
-  left: 5vw;
-  width: 90vw;
-  height: 60vh;
-  padding:0;
-  margin:0;
+  inset: 0;
   background-image: url('./loading.jpg');
   background-size: cover;
+  background-position: center 40%;
+  animation: zoom 18s ease-out forwards;
 }
 
-.wrap {
+/* dark gradient at the bottom so the text stays readable */
+.shade {
   position: absolute;
-  top: 70vh;
-  left: 0vw;
-  width: 100%;
-  height: 30vh;
-  text-align: center;
-  padding:0;
-  margin:0;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(10, 14, 20, 0) 35%, rgba(10, 14, 20, 0.55) 65%, rgba(10, 14, 20, 0.92) 100%);
 }
 
-.row {
+.panel {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.brand {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.status {
+  font-size: 14px;
+  color: var(--text-muted);
+  min-height: 18px;
+}
+
+/* indeterminate progress bar */
+.progress {
   position: relative;
-  top: 5vh;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
 }
 
-.h2 {
-  font-size: 24px;
-}
-
-.text {
-  color: #2c3e50;
-  margin-left: 5px;
+.progress .bar {
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: progress 1.4s ease-in-out infinite;
 }
 
 .version {
-  color: #2c3e50;
-  margin: 0;
-  padding: 0;
-  font-size: 2vh;
-  text-align: left;
   position: absolute;
-  width: 98vh;
-  height: 2vh;
-  left: 1vh;
-  top: 97vh;
-  z-index: 20;
+  right: 14px;
+  bottom: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
-
-.error {
-  position: absolute;
-  font-size: 15px;
-  font-weight: bold;
-  top: 10vh;
-  width: 100%;
-  text-align: center;
-  color: #000000;
-  display: inline-block;
+.buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
 }
 
 .btn {
-  position: relative;
-  background-color: #dd9933; 
-  border-color: #2c3e50;
-  position: relative;
-  margin: auto;
-  font-weight: normal;
-  text-align: center;
-  vertical-align: middle;
-  -ms-touch-action: manipulation;
-  touch-action: manipulation;
+  -webkit-app-region: no-drag;
+  margin-top: 6px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #1b1b1b;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  background-image: none;
-  border: 1px solid transparent;
-  white-space: nowrap;
-  padding: 1.1vh 1vw;
-  border-radius: 4px;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  color: white;
-  
+  transition: background 0.15s ease, transform 0.15s ease;
 }
+
 .btn:hover {
-  background-color: #8dc100;
-} 
-
-
-.buttons {
-  position: absolute;
-  top: 70vh;
-  width: 100%;
-  text-align: center;
-  display: inline-block;
+  background: var(--accent-hover);
+  transform: translateY(-1px);
 }
 
-
-.bounceball {
-  position: relative;
-  display: inline-block;
-  height: 37px;
-  width: 15px;
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text);
 }
 
-.bounceball:before {
-  position: absolute;
-  content: '';
-  display: block;
-  top: 0;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background-color: #2c3e50;
-  -webkit-transform-origin: 50%;
-          transform-origin: 50%;
-  -webkit-animation: bounce 500ms alternate infinite ease;
-          animation: bounce 500ms alternate infinite ease;
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.28);
 }
 
-@-webkit-keyframes bounce {
-  0% {
-    top: 30px;
-    height: 5px;
-    border-radius: 60px 60px 20px 20px;
-    -webkit-transform: scaleX(2);
-            transform: scaleX(2);
-  }
-  35% {
-    height: 15px;
-    border-radius: 50%;
-    -webkit-transform: scaleX(1);
-            transform: scaleX(1);
-  }
-  100% {
-    top: 0;
-  }
+.error {
+  font-size: 18px;
+  font-weight: 600;
 }
 
-@keyframes bounce {
-  0% {
-    top: 30px;
-    height: 5px;
-    border-radius: 60px 60px 20px 20px;
-    -webkit-transform: scaleX(2);
-            transform: scaleX(2);
-  }
-  35% {
-    height: 15px;
-    border-radius: 50%;
-    -webkit-transform: scaleX(1);
-            transform: scaleX(1);
-  }
-  100% {
-    top: 0;
-  }
+@keyframes progress {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
+
+@keyframes zoom {
+  from { transform: scale(1.08); }
+  to   { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero { animation: none; }
+  .progress .bar { animation-duration: 3s; }
 }
